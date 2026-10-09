@@ -27,6 +27,8 @@ jobs:
 
       - name: Run unit tests
         run: npm test
+        env:
+          MAINTENANCE_MODE: "off"
 
   docker-build:
     name: Build and smoke-test image
