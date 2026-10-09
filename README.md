@@ -101,3 +101,27 @@ commit and redeploy, or rebuild from a previous tag:
 git revert <commit>          # revert a bad release
 docker compose up -d --build # redeploy the reverted version
 ```
+
+## Cloud mapping (documentation only)
+
+This same flow maps onto Google Cloud without changing much. No deployment
+happens here, this is just notes on the equivalent cloud release path.
+
+Build and push: instead of `docker build` on a local machine, CI (or Cloud
+Build) builds the same `Dockerfile` and pushes the image to Artifact
+Registry, tagged per commit SHA the way the image is tagged `:ci` here.
+
+Deploy: instead of `docker compose up`, the image gets deployed to Cloud Run
+as a service. Cloud Run manages the container lifecycle that `docker-compose.yml`
+handles locally: it reads `PORT` from the environment the same way the app
+already does, and runs the same `/health` check as a liveness probe.
+
+Observe: instead of Prometheus scraping `/metrics` and Grafana dashboarding
+it, Cloud Monitoring scrapes the same endpoint (Cloud Run supports Prometheus
+scrape format) and the existing panel queries become Cloud Monitoring charts
+or an exported dashboard. Logs replace `docker compose logs` with Cloud
+Logging.
+
+Rollback: Cloud Run keeps every deployed revision, so a bad release rolls
+back by shifting traffic to the previous revision instead of `git revert` +
+redeploy — the same idea, just a managed version of it.
